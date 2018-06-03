@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">AndroidApiTest</string>
+    <string name="description">description</string>
 </resources>
