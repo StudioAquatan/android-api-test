@@ -50,7 +50,7 @@ class Camera : AppCompatActivity() {
 
         /* APIのsend用のボタン */
         sendapiButton.setOnClickListener {
-
+            addPicGallery(setImage())
             alert("更新しました") {
                 yesButton {  }
             }.show()
@@ -78,7 +78,6 @@ class Camera : AppCompatActivity() {
             CAMERA_REQUEST_CODE -> {
                 if(resultCode == Activity.RESULT_OK) {
                     photoImageView.setImageBitmap(setImage())
-                    appPicGallery(setImage())
                 }
             }
             else-> {
@@ -98,9 +97,14 @@ class Camera : AppCompatActivity() {
     }
 
     /* ギャラリーへの追加と更新 */
-    private fun appPicGallery(bitmap: Bitmap) {
+    private fun addPicGallery(bitmap: Bitmap) {
         val albumdir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "100ANDRO")
-        val file = File(albumdir, "$imageFileName.jpg")
+        val picName: String = if (editpicName.text.isEmpty()) {
+            "$imageFileName.jpg"
+        }else {
+            editpicName.text.toString() + ".jpg"
+        }
+        val file = File(albumdir, picName)
         val imageOut = FileOutputStream(file)
 
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, imageOut)
