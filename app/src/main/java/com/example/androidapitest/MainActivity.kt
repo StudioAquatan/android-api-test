@@ -7,6 +7,11 @@ import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import android.widget.GridView
+import android.widget.ImageButton
+import com.example.androidapitest.client.PictureClient
+import com.google.gson.FieldNamingPolicy
+import com.google.gson.GsonBuilder
 import android.widget.BaseAdapter
 import android.widget.Toast
 import com.bumptech.glide.Glide
@@ -17,9 +22,15 @@ import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.yesButton
+import retrofit2.Retrofit
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory
+import retrofit2.converter.gson.GsonConverterFactory
+import rx.android.schedulers.AndroidSchedulers
+import rx.schedulers.Schedulers
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,24 +43,41 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val gridView: GridView = findViewById(R.id.gridView)
+        val camera: ImageButton = findViewById(R.id.camera)
+        val reload: ImageButton = findViewById(R.id.reload)
         checkpermission()
 
-        /* インターネットから画像を取得した簡単な例 */
-        for (i in 1..20) {
-            names.add("test")
-            "1999/10/22".toDate("yyyy/MM/dd")?.let { dates.add(it) }
-            pictures.add("https://4.bp.blogspot.com/-2kOkRu5Z-Es/WtRzMCubiHI/AAAAAAABLko/qfsgPsAaaCs-J7B8_lLLEuWiAQro9uc7QCLcBGAs/s800/kumade_ebisu_daikoku_okame.png")
-        }
 
-        gridView.adapter = PicutureAdapter(R.layout.grid_items, names, dates, pictures)
+        val gridAdapter = PicutureAdapter(applicationContext)
+        gridView.adapter = gridAdapter
 
-        /* API更新のためのボタン(使うかは微妙？) */
+        val gson = GsonBuilder()
+                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                .create()
+
+        val retrofit = Retrofit.Builder()
+                .baseUrl("https://example.com")
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .build()
+
+        val pictureClient = retrofit.create(PictureClient::class.java)
+
         reload.setOnClickListener {
+            pictureClient.search()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({
+                        gridAdapter.pictures = it.results
+                        gridAdapter.notifyDataSetChanged()
+                    }, {
+                        toast("エラー: $it")
+                    })
 
             alert("更新しました") {
-                yesButton {  }
+                yesButton { }
             }.show()
-
         }
 
         /* カメラ起動のためのボタン */
