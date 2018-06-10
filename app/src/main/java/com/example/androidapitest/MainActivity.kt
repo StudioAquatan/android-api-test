@@ -2,42 +2,61 @@ package com.example.androidapitest
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.widget.BaseAdapter
-import com.bumptech.glide.Glide
-import io.realm.Realm
-import io.realm.kotlin.createObject
-import io.realm.kotlin.where
-import kotlinx.android.synthetic.main.activity_main.*
+import android.widget.GridView
+import android.widget.ImageButton
+import com.example.androidapitest.client.PictureClient
+import com.google.gson.FieldNamingPolicy
+import com.google.gson.GsonBuilder
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.yesButton
+import retrofit2.Retrofit
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory
+import retrofit2.converter.gson.GsonConverterFactory
+import rx.android.schedulers.AndroidSchedulers
+import rx.schedulers.Schedulers
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
+
 class MainActivity : AppCompatActivity() {
-
-    private val names: MutableList<String> = mutableListOf()
-    private val dates: MutableList<Date> = mutableListOf()
-    private val pictures: MutableList<String> = mutableListOf()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        for (i in 1..20) {
-            names.add("test")
-            "1999/10/22".toDate("yyyy/MM/dd")?.let { dates.add(it) }
-            pictures.add("https://4.bp.blogspot.com/-2kOkRu5Z-Es/WtRzMCubiHI/AAAAAAABLko/qfsgPsAaaCs-J7B8_lLLEuWiAQro9uc7QCLcBGAs/s800/kumade_ebisu_daikoku_okame.png")
-        }
+        val gridView: GridView = findViewById(R.id.gridView)
+        val camera: ImageButton = findViewById(R.id.camera)
+        val reload: ImageButton = findViewById(R.id.reload)
 
-        gridView.adapter = PicutureAdapter(R.layout.grid_items, names, dates, pictures)
+        val gridAdapter = PicutureAdapter(applicationContext)
+        gridView.adapter = gridAdapter
+
+        val gson = GsonBuilder()
+                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                .create()
+
+        val retrofit = Retrofit.Builder()
+                .baseUrl("https://example.com")
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .build()
+
+        val pictureClient = retrofit.create(PictureClient::class.java)
 
         reload.setOnClickListener {
+            pictureClient.search()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({
+                        gridAdapter.pictures = it.results
+                        gridAdapter.notifyDataSetChanged()
+                    }, {
+                        toast("エラー: $it")
+                    })
 
             alert("更新しました") {
-                yesButton {  }
+                yesButton { }
             }.show()
-
         }
 
         camera.setOnClickListener {
@@ -45,7 +64,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun String.toDate(pattern: String = "yyyy/MM/dd HH:mm") : Date? {
+    fun String.toDate(pattern: String = "yyyy/MM/dd HH:mm"): Date? {
         val sdFormat = try {
             SimpleDateFormat(pattern)
         } catch (e: IllegalArgumentException) {
