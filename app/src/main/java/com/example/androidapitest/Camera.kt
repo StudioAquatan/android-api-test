@@ -8,19 +8,17 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.net.Uri
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.support.v4.content.FileProvider
+import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
-import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.activity_camera.*
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.yesButton
 import java.io.File
 import java.io.FileOutputStream
-import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -172,6 +170,4 @@ class Camera : AppCompatActivity() {
         Canvas(newbitmap).drawBitmap(newbitmap, 0.0F, 0.0F, null)
         return newbitmap
     }
-
-
 }

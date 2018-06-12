@@ -27,7 +27,7 @@ data class ImageList(val count: Int,
             writeInt(count)
             writeInt(next)
             writeInt(previous)
-//            writeList(results)
+            writeList(results)
         }
     }
 }

@@ -20,26 +20,25 @@ import io.realm.Realm
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import kotlinx.android.synthetic.main.activity_main.*
+import android.widget.GridView
+import android.widget.ImageButton
+import android.widget.Toast
+import com.example.androidapitest.client.PictureClient
+import com.google.gson.FieldNamingPolicy
+import com.google.gson.GsonBuilder
 import org.jetbrains.anko.alert
-import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.yesButton
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
-import java.text.ParseException
-import java.text.SimpleDateFormat
-import java.util.*
 
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemClickListener {
 
 
 
-    private val names: MutableList<String> = mutableListOf()
-    private val dates: MutableList<Date> = mutableListOf()
-    private val pictures: MutableList<String> = mutableListOf()
     private val REQUEST_CODE = 1000
     private var gridAdapter: PicutureAdapter? = null
 
@@ -61,7 +60,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemClickListener {
                 .create()
 
         val retrofit = Retrofit.Builder()
-                .baseUrl("https://sample.drf.aquatan.studio/api/v1/base64images/")
+                .baseUrl("https://example.com")
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build()
@@ -116,23 +115,5 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemClickListener {
             Toast.makeText(this, "Running this app needs your permission", Toast.LENGTH_SHORT).show()
             ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_CODE)
         }
-    }
-
-    /* String型からDate型への変換 */
-    fun String.toDate(pattern: String = "yyyy/MM/dd HH:mm") : Date? {
-        val sdFormat = try {
-            SimpleDateFormat(pattern)
-        } catch (e: IllegalArgumentException) {
-            null
-        }
-        val date = sdFormat?.let {
-            try {
-                it.parse(this)
-            } catch (e: ParseException) {
-                null
-            }
-        }
-
-        return date
     }
 }
