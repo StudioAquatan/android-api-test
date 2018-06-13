@@ -166,11 +166,8 @@ class Camera : RxAppCompatActivity() {
 
     /* 画像ファイルのbitmap化 */
     private fun setImage(): Bitmap {
-//        val imageViewWidth = photoImageView.width
-//        val imageViewHeight = photoImageView.height
-
-        val imageViewWidth = 200
-        val imageViewHeight = 300
+        val imageViewWidth = photoImageView.width
+        val imageViewHeight = photoImageView.height
 
         val bmOptions = BitmapFactory.Options()
         bmOptions.inJustDecodeBounds = true
