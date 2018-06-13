@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.AdapterView
 import android.widget.GridView
@@ -14,6 +13,8 @@ import android.widget.Toast
 import com.example.androidapitest.client.PictureClient
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
+import com.trello.rxlifecycle.components.support.RxAppCompatActivity
+import com.trello.rxlifecycle.kotlin.bindToLifecycle
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.yesButton
 import retrofit2.Retrofit
@@ -23,7 +24,7 @@ import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
 
 
-class MainActivity : AppCompatActivity(), AdapterView.OnItemClickListener {
+class MainActivity : RxAppCompatActivity(), AdapterView.OnItemClickListener {
     private val REQUEST_CODE = 1000
     private var gridAdapter: PicutureAdapter? = null
 
@@ -58,6 +59,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemClickListener {
             pictureClient.search()
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
+                    .bindToLifecycle(this)
                     .subscribe({
                         gridAdapter!!.pictures = it.results
                         gridAdapter!!.notifyDataSetChanged()

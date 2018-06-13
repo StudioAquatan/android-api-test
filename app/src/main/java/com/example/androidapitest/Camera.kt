@@ -12,12 +12,13 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.support.v4.content.FileProvider
-import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
 import com.example.androidapitest.client.PictureClient
 import com.example.androidapitest.model.sendPicture
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
+import com.trello.rxlifecycle.components.support.RxAppCompatActivity
+import com.trello.rxlifecycle.kotlin.bindToLifecycle
 import kotlinx.android.synthetic.main.activity_camera.*
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.yesButton
@@ -31,7 +32,7 @@ import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
-class Camera : AppCompatActivity() {
+class Camera : RxAppCompatActivity() {
 
     val CAMERA_REQUEST_CODE = 0
     var FIRST_TIME_ON = 0
@@ -55,9 +56,9 @@ class Camera : AppCompatActivity() {
         val pictureClient = retrofit.create(PictureClient::class.java)
 
         /* 画面遷移後カメラを実行するための条件文 */
-        if(FIRST_TIME_ON == 0) {
+        if (FIRST_TIME_ON == 0) {
             val callCameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-            if(callCameraIntent.resolveActivity(packageManager) != null) {
+            if (callCameraIntent.resolveActivity(packageManager) != null) {
                 val imageFile = createImageFile()
                 val authorities = "$packageName.fileprovider"
                 val imageUri = FileProvider.getUriForFile(this, authorities, imageFile)
@@ -67,7 +68,7 @@ class Camera : AppCompatActivity() {
             }
         }
 
-        val postTarget=sendPicture("test-from-app",createImageFile())
+        val postTarget = sendPicture("test-from-app", createImageFile())
 
         /* APIのsend用のボタン */
         sendapiButton.setOnClickListener {
@@ -76,12 +77,13 @@ class Camera : AppCompatActivity() {
             pictureClient.postPicture(postTarget)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
+                    .bindToLifecycle(this)
                     .subscribe({
                     }, {
                         toast("エラー: $it")
                     })
             alert("送ったよ♡") {
-                yesButton {  }
+                yesButton { }
             }.show()
 
         }
@@ -89,7 +91,7 @@ class Camera : AppCompatActivity() {
         /* カメラ起動のボタン */
         cameraButton.setOnClickListener {
             val callCameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-            if(callCameraIntent.resolveActivity(packageManager) != null) {
+            if (callCameraIntent.resolveActivity(packageManager) != null) {
                 val imageFile = createImageFile()
                 val authorities = "$packageName.fileprovider"
                 val imageUri = FileProvider.getUriForFile(this, authorities, imageFile)
@@ -103,20 +105,20 @@ class Camera : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        when(requestCode) {
+        when (requestCode) {
             CAMERA_REQUEST_CODE -> {
-                if(resultCode == Activity.RESULT_OK) {
+                if (resultCode == Activity.RESULT_OK) {
                     photoImageView.setImageBitmap(setImage())
                 }
             }
-            else-> {
+            else -> {
                 Toast.makeText(this, "Unrecognized request code", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     /* 画像ファイルの作成 */
-    private fun createImageFile() : File {
+    private fun createImageFile(): File {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         imageFileName = "JPEG_" + timeStamp + "_"
         val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_DCIM)
@@ -130,7 +132,7 @@ class Camera : AppCompatActivity() {
         val albumdir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "100ANDRO")
         val picName: String = if (editpicName.text.isEmpty()) {
             "$imageFileName.jpg"
-        }else {
+        } else {
             editpicName.text.toString() + ".jpg"
         }
         val file = File(albumdir, picName)
@@ -164,8 +166,11 @@ class Camera : AppCompatActivity() {
 
     /* 画像ファイルのbitmap化 */
     private fun setImage(): Bitmap {
-        val imageViewWidth = photoImageView.width
-        val imageViewHeight = photoImageView.height
+//        val imageViewWidth = photoImageView.width
+//        val imageViewHeight = photoImageView.height
+
+        val imageViewWidth = 200
+        val imageViewHeight = 300
 
         val bmOptions = BitmapFactory.Options()
         bmOptions.inJustDecodeBounds = true
@@ -173,7 +178,7 @@ class Camera : AppCompatActivity() {
         val bitmapWidth = bmOptions.outWidth
         val bitmapHeight = bmOptions.outHeight
 
-        val scanFactor = Math.min(bitmapWidth/imageViewWidth, bitmapHeight/imageViewHeight)
+        val scanFactor = Math.min(bitmapWidth / imageViewWidth, bitmapHeight / imageViewHeight)
 
         bmOptions.inJustDecodeBounds = false
         bmOptions.inSampleSize = scanFactor
@@ -192,8 +197,8 @@ class Camera : AppCompatActivity() {
         val newbitmap: Bitmap
         val rotateAngle = 90F
         val localMatrix = Matrix()
-        val f1 = bitmap.width/2F
-        val f2 = bitmap.height/2F
+        val f1 = bitmap.width / 2F
+        val f2 = bitmap.height / 2F
         localMatrix.postTranslate(-f1, -f2)
         localMatrix.postRotate(rotateAngle)
         localMatrix.postTranslate(f1, f2)
