@@ -14,9 +14,18 @@ import android.provider.MediaStore
 import android.support.v4.content.FileProvider
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
+import com.example.androidapitest.client.PictureClient
+import com.example.androidapitest.model.sendPicture
+import com.google.gson.FieldNamingPolicy
+import com.google.gson.GsonBuilder
 import kotlinx.android.synthetic.main.activity_camera.*
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.yesButton
+import retrofit2.Retrofit
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory
+import retrofit2.converter.gson.GsonConverterFactory
+import rx.android.schedulers.AndroidSchedulers
+import rx.schedulers.Schedulers
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -33,6 +42,18 @@ class Camera : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
 
+        val gson = GsonBuilder()
+                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                .create()
+
+        val retrofit = Retrofit.Builder()
+                .baseUrl("https://sample.drf.aquatan.studio")
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .build()
+
+        val pictureClient = retrofit.create(PictureClient::class.java)
+
         /* 画面遷移後カメラを実行するための条件文 */
         if(FIRST_TIME_ON == 0) {
             val callCameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -46,10 +67,20 @@ class Camera : AppCompatActivity() {
             }
         }
 
+        val postTarget=sendPicture("test-from-app",createImageFile())
+
         /* APIのsend用のボタン */
         sendapiButton.setOnClickListener {
             addPicGallery(setImage())
-            alert("更新しました") {
+            /* サーバへ送信 */
+            pictureClient.postPicture(postTarget)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({
+                    }, {
+                        toast("エラー: $it")
+                    })
+            alert("送ったよ♡") {
                 yesButton {  }
             }.show()
 

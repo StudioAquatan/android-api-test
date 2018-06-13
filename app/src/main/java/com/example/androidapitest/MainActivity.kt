@@ -2,24 +2,12 @@ package com.example.androidapitest
 
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Picture
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.View
-import android.widget.*
-import com.example.androidapitest.client.PictureClient
-import com.google.gson.FieldNamingPolicy
-import com.google.gson.GsonBuilder
-import com.bumptech.glide.Glide
-import com.example.androidapitest.view.PictureView
-import io.realm.Realm
-import io.realm.kotlin.createObject
-import io.realm.kotlin.where
-import kotlinx.android.synthetic.main.activity_main.*
+import android.widget.AdapterView
 import android.widget.GridView
 import android.widget.ImageButton
 import android.widget.Toast
@@ -36,9 +24,6 @@ import rx.schedulers.Schedulers
 
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemClickListener {
-
-
-
     private val REQUEST_CODE = 1000
     private var gridAdapter: PicutureAdapter? = null
 
@@ -60,7 +45,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemClickListener {
                 .create()
 
         val retrofit = Retrofit.Builder()
-                .baseUrl("https://example.com")
+                .baseUrl("https://sample.drf.aquatan.studio")
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build()
