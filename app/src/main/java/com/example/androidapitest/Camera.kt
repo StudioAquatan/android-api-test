@@ -43,18 +43,6 @@ class Camera : RxAppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
 
-        val gson = GsonBuilder()
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .create()
-
-        val retrofit = Retrofit.Builder()
-                .baseUrl("https://sample.drf.aquatan.studio")
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                .build()
-
-        val pictureClient = retrofit.create(PictureClient::class.java)
-
         /* 画面遷移後カメラを実行するための条件文 */
         if (FIRST_TIME_ON == 0) {
             val callCameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -68,12 +56,25 @@ class Camera : RxAppCompatActivity() {
             }
         }
 
-        val postTarget = sendPicture(editpicName.text.toString(), createImageFile())
+        val gson = GsonBuilder()
+                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                .create()
+
+        val retrofit = Retrofit.Builder()
+                .baseUrl("https://sample.drf.aquatan.studio")
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .build()
+
+        val pictureClient = retrofit.create(PictureClient::class.java)
+
+
 
         /* APIのsend用のボタン */
         sendapiButton.setOnClickListener {
             addPicGallery(setImage())
             /* サーバへ送信 */
+            val postTarget = sendPicture(editpicName.text.toString(), createImageFile())
             pictureClient.postPicture(postTarget)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
@@ -144,7 +145,7 @@ class Camera : RxAppCompatActivity() {
 
     /* ギャラリーへの追加と更新 */
     private fun addPicGallery(bitmap: Bitmap) {
-        val albumdir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "100ANDRO")
+        val albumdir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "100FJDCF")
         val picName: String = if (editpicName.text.isEmpty()) {
             "$imageFileName.jpg"
         } else {
@@ -181,11 +182,11 @@ class Camera : RxAppCompatActivity() {
 
     /* 画像ファイルのbitmap化 */
     private fun setImage(): Bitmap {
-        val imageViewWidth = photoImageView.width
-        val imageViewHeight = photoImageView.height
+//        val imageViewWidth = photoImageView.width
+//        val imageViewHeight = photoImageView.height
 
-//        val imageViewWidth = 300
-//        val imageViewHeight = 300
+        val imageViewWidth = 300
+        val imageViewHeight = 300
 
         val bmOptions = BitmapFactory.Options()
         bmOptions.inJustDecodeBounds = true
