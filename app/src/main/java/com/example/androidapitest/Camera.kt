@@ -68,7 +68,7 @@ class Camera : RxAppCompatActivity() {
             }
         }
 
-        val postTarget = sendPicture("test-from-app", createImageFile())
+        val postTarget = sendPicture(editpicName.text.toString(), createImageFile())
 
         /* APIのsend用のボタン */
         sendapiButton.setOnClickListener {
@@ -101,10 +101,25 @@ class Camera : RxAppCompatActivity() {
         }
     }
 
+    class ActivityResult(val requestCode: Int, val resultCode: Int, val data: Intent?)
+
+    private var activityResult: ActivityResult? = null
+
     /* 写真撮影後の動作 */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        activityResult = ActivityResult(requestCode, resultCode, data)
+    }
 
+    override fun onPostResume() {
+        super.onPostResume()
+        if (activityResult != null) {
+            onPostResumeWithActivityResult(activityResult!!.requestCode,activityResult!!.resultCode,activityResult!!.data)
+            activityResult = null
+        }
+    }
+
+    private fun onPostResumeWithActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             CAMERA_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK) {
@@ -168,6 +183,9 @@ class Camera : RxAppCompatActivity() {
     private fun setImage(): Bitmap {
         val imageViewWidth = photoImageView.width
         val imageViewHeight = photoImageView.height
+
+//        val imageViewWidth = 300
+//        val imageViewHeight = 300
 
         val bmOptions = BitmapFactory.Options()
         bmOptions.inJustDecodeBounds = true
